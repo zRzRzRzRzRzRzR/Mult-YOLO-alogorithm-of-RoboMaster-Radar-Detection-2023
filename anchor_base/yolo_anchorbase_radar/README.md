@@ -1,5 +1,4 @@
-**2023 RoboMaster XJTLU Radar Object Detection**
-***Anchor_Base training code***
+***2023 RoboMaster XJTLU Radar Object Detection Anchor_Base training code***
 =
 ### **Team: 动云科技GMaster战队 <br>**
 #### **Author: *视觉组 张昱轩 zR***
@@ -19,9 +18,9 @@
 + 若一个网络无法检测到小目标，则之后的测试项目将没有必要测试。
 + 表格中的符号表示如下：
   + ``` √ ``` 达到了团队要求的比赛的标准（上述要求精度）
-  + ``` × ``` 无法推理 / 精度不达标 / 速度不达标。 
+  + ``` × ``` 无法推理 / 精度不达标 / 速度不达标。
   + ``` \ ``` 符号表表示 未测试 / 无法测试 / 没有测试必要（由于队伍的推理框架由Openvino转向了TensorRT，大部分算法实验不在测试Openvino独显性能)
-  + ``` ? ``` 未测试。 
+  + ``` ? ``` 未测试。
   + ```[]```  替代标准 yolov7/yolov8 模块的位置 ，例如 ``` [3]```代表将第三个标准ELAN模块更换为指定模块。
 
 #### Performance
@@ -47,4 +46,4 @@
 ### 最终结构
 我们团队最终使用的网络模型配置文件为 ```cfg/GMaster/yolov7-4anchor-transCoT3-Full-HorNet-SimAM.yaml ```。<br>
 下图为该网络的简单结构图：<br>
-![](https://github.com/zRzRzRzRzRzRzR/yolov7_Radar_RM/blob/main/show_pic/yolo.png)
+![](https://github.com/zRzRzRzRzRzRzR/Mult-YOLO-alogorithm-of-RoboMaster-Radar-Detection-2023/blob/main/show_pic/yolo.png)
