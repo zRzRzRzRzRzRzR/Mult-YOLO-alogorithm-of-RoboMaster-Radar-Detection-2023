@@ -112,7 +112,7 @@ C++_inference_TensorRT_radar: TensorRT推理代码（用于NVIDIA的GPU推理加
   - 由于我们团队的训练和推理不在一台机器上，固没有进行相关方面的尝试，使用者可自行尝试。
   
 ### 效果展示
-![](https://github.com/zRzRzRzRzRzRzR/Mult-YOLO-alogorithm-of-RoboMaster-Radar-Detection-2023/tree/main/show_pic/inference.jpg)
+![](https://github.com/zRzRzRzRzRzRzR/Mult-YOLO-alogorithm-of-RoboMaster-Radar-Detection-2023/blob/main/show_pic/inference.jpg)
 
 ### 部署和推理
 **```注意```** 

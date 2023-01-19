@@ -12,8 +12,8 @@
 
 ### 测试过的网络和表现
 
-+ 推理代码详见[OpenVino_Demo](https://github.com/zRzRzRzRzRzRzR/Mult-YOLO-alogorithm-of-RoboMaster-Radar-Detection-2023/tree/main/C%2B%2B_inference_Openvino_radar)
-  和[TensorRT_Demo](https://github.com/zRzRzRzRzRzRzR/Mult-YOLO-alogorithm-of-RoboMaster-Radar-Detection-2023/tree/main/C%2B%2B_inference_TensorRT_radar)
++ 推理代码详见[OpenVino_Demo](https://github.com/zRzRzRzRzRzRzR/Mult-YOLO-alogorithm-of-RoboMaster-Radar-Detection-2023/blob/main/C%2B%2B_inference_Openvino_radar)
+  和[TensorRT_Demo](https://github.com/zRzRzRzRzRzRzR/Mult-YOLO-alogorithm-of-RoboMaster-Radar-Detection-2023/blob/main/C%2B%2B_inference_TensorRT_radar)
 + 推理显卡为RTX 3060，更多硬件参数详见``` Demo```介绍。
 + 本表格中的所有的推理均在 FP16 精度下进行。控制IOU参数为``` 0.6```, NMS参数为``` 0.4 ```。
 + 若一个网络无法检测到小目标，则之后的测试项目将没有必要测试。

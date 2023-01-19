@@ -63,7 +63,7 @@ struct Object_result<br>
 ## 推理样例展示：
 
 图片展示:<br><br><br>
-![](https://github.com/zRzRzRzRzRzRzR/Mult-YOLO-alogorithm-of-RoboMaster-Radar-Detection-2023/tree/main/show_pic/demo_openvino.png)<br>
+![](https://github.com/zRzRzRzRzRzRzR/Mult-YOLO-alogorithm-of-RoboMaster-Radar-Detection-2023/blob/main/show_pic/demo_openvino.png)<br>
 
 输出展示：<br><br>
 单目车载相机:
