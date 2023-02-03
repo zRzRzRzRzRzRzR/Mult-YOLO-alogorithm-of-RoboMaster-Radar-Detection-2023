@@ -11,7 +11,8 @@
 
 本代码用于将视觉双目相机雷达的anchor_base网络权重文件部署至 C++ Openvino环境。<br>
 
-**```注意```** 
+**```注意```**
+
 + 由于团队在2022年11月已经弃用OpenVINO推理加速。固该部分代码不会继续维护。
 
 ## DEMO演示代码架构
@@ -67,12 +68,15 @@ struct Object_result<br>
 
 输出展示：<br><br>
 单目车载相机:
+
 ```
 label:4
 bbox:[54 x 42 from (2118, 846)]
 Time: 7.082471
 ```
+
 双目雷达相机:
+
 ```
 Find a target
 label:1
@@ -80,6 +84,7 @@ bbox_left:[105 x 139 from (389, 593)]
 bbox_right:[106 x 136 from (555, 579)]
 
 ```
+
 ## 推理代码测试平台
 
 ```

@@ -19,7 +19,6 @@
 ├── yolov8_raadr.cpp <br>
 └── yolov8_radar.h <br>
 
-
 ### Demo DaHeng Camera
 
 该目录下包含了一个简单的大恒水星相机的调用程序，并引入了目标检测实现打开摄像头的检测。<br>
@@ -48,8 +47,8 @@
 + ```CONF_THRESHOLD``` 置信度阈值，默认值 ```0.5```。
 + ```GPU_ID``` 推理设备，默认值为```0```。
 + ```注意```:
-  + TensorRT部署不需要手动配置anchor数据，因此，采用TensorRT部署不需要像Openvino手动计算anchor的数量和聚类数据。
-  + TensorRT仅能在NVIDIA的GPU上推理，固设备无法选择CPU。
+    + TensorRT部署不需要手动配置anchor数据，因此，采用TensorRT部署不需要像Openvino手动计算anchor的数量和聚类数据。
+    + TensorRT仅能在NVIDIA的GPU上推理，固设备无法选择CPU。
 
 部分类，函数的解释如下:<br>
 
@@ -93,12 +92,15 @@ struct Object_result<br>
 ![](https://github.com/zRzRzRzRzRzRzR/Mult-YOLO-alogorithm-of-RoboMaster-Radar-Detection-2023/blob/main/show_pic/demo_trt.png)<br>
 输出展示：<br><br>
 单目车载相机:
+
 ```
 label:4
 bbox:[54 x 42 from (2118, 846)]
 Time: 7.082471
 ```
+
 双目雷达相机:
+
 ```
 Find a target
 label:1
@@ -131,4 +133,6 @@ OpenCV : 4.6.0
 Protobuf : 3.11.4
 Protobuf : 3.11.4
 ```
-__注意: 该代码在上述指定版本以下 (尤其是与显卡相关的库) 的版本可能无法运行。 例如在```CUDA 10.2```（以及对应的TensorRT，Cudnn版本)下可能会无法正确读取网络模型。__
+
+__注意: 该代码在上述指定版本以下 (尤其是与显卡相关的库) 的版本可能无法运行。 例如在```CUDA 10.2```
+（以及对应的TensorRT，Cudnn版本)下可能会无法正确读取网络模型。__
