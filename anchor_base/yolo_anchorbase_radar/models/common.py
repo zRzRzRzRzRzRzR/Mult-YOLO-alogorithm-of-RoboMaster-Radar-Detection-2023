@@ -22,8 +22,8 @@ from models.Models.ConvNext_v2 import CNeB2
 from models.Models.RepVGG import RepVGGBlock
 ##### 我们使用的三个模块 ######
 from models.Models.BOT import BoT3
-from models.Models.COT import CoT3
-from models.Models.HorNet import C3HB
+from models.Models.COT import CoT3,CoT2f
+from models.Models.HorNet import C3HB,C2fHB
 
 
 #### begin of yolov8 ####

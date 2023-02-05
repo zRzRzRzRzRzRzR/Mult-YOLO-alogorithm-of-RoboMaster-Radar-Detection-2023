@@ -33,7 +33,7 @@ from utils.plots import plot_images,plot_results, plot_evolution
 from utils.torch_utils import ModelEMA, select_device, intersect_dicts, torch_distributed_zero_first, is_parallel
 from utils.wandb_logging.wandb_utils import WandbLogger, check_wandb_resume
 logger = logging.getLogger(__name__)
-def train(hyp, opt, device, tb_writer=None):
+def train(hyp, opt, device, nohalf=True, tb_writer=None):
     torch.cuda.empty_cache()
     logger.info(colorstr('hyperparameters: ') + ', '.join(f'{k}={v}' for k, v in hyp.items()))
     save_dir, epochs, batch_size, total_batch_size, weights, rank, freeze = \
@@ -226,8 +226,8 @@ def train(hyp, opt, device, tb_writer=None):
     # Image sizes
     gs = max(int(model.stride.max()), 32)  # grid size (max stride)
     nl = model.model[-1].nl  # number of detection layers (used for scaling hyp['obj'])
-    # imgsz, imgsz_test = [check_img_size(x, gs) for x in opt.img_size]  # verify imgsz are gs-multiples
-    imgsz = check_img_size(opt.imgsz, gs, floor=gs * 2)  # verify imgsz is gs-multiple
+    imgsz, imgsz_test = [check_img_size(x, gs) for x in opt.img_size]  # verify imgsz are gs-multiples
+    # imgsz = check_img_size(opt.imgsz, gs, floor=gs * 2)  # verify imgsz is gs-multiple
 
     # DP mode
     if cuda and rank == -1 and torch.cuda.device_count() > 1:
@@ -266,7 +266,10 @@ def train(hyp, opt, device, tb_writer=None):
 
             # Anchors 取决于检测头需不需要anchor
             check_anchors(dataset, model=model, thr=hyp['anchor_t'], imgsz=imgsz)
-            model.half().float()  # pre-reduce anchor precision
+            if nohalf:
+                model.float()  # pre-reduce anchor precision
+            else:
+                model.half().float()  # pre-reduce anchor precision
 
     # DDP mode
     if cuda and rank != -1:
@@ -292,7 +295,7 @@ def train(hyp, opt, device, tb_writer=None):
     maps = np.zeros(nc)  # mAP per class
     results = (0, 0, 0, 0, 0, 0, 0)  # P, R, mAP@.5, mAP@.5-.95, val_loss(box, obj, cls)
     scheduler.last_epoch = start_epoch - 1  # do not move
-    scaler = amp.GradScaler(enabled=cuda)
+    scaler = amp.GradScaler(enabled=cuda and not nohalf)
 
     compute_loss = ComputeLoss(model)  # init loss class
     logger.info(f'Image sizes {imgsz} train, {imgsz} test\n'
@@ -354,7 +357,7 @@ def train(hyp, opt, device, tb_writer=None):
                     imgs = F.interpolate(imgs, size=ns, mode='bilinear', align_corners=False)
 
             # Forward
-            with amp.autocast(enabled=cuda):
+            with amp.autocast(enabled=(cuda and not nohalf)):
                 pred = model(imgs)  # forward
                 loss, loss_items = compute_loss(pred, targets.to(device))  # loss scaled by batch_size
                 if rank != -1:
@@ -413,6 +416,7 @@ def train(hyp, opt, device, tb_writer=None):
                                                  plots=plots and final_epoch,
                                                  wandb_logger=wandb_logger,
                                                  compute_loss=compute_loss,
+                                                 half_precision=not nohalf,
                                                  is_coco=is_coco)
 
             # Write
@@ -440,15 +444,24 @@ def train(hyp, opt, device, tb_writer=None):
 
             # Save model
             if (not opt.nosave) or (final_epoch and not opt.evolve):  # if save
-                ckpt = {'epoch': epoch,
-                        'best_fitness': best_fitness,
-                        'training_results': results_file.read_text(),
-                        'model': deepcopy(model.module if is_parallel(model) else model).half(),
-                        'ema': deepcopy(ema.ema).half(),
-                        'updates': ema.updates,
-                        'optimizer': optimizer.state_dict(),
-                        'wandb_id': wandb_logger.wandb_run.id if wandb_logger.wandb else None}
-
+                if not nohalf:
+                    ckpt = {'epoch': epoch,
+                            'best_fitness': best_fitness,
+                            'training_results': results_file.read_text(),
+                            'model': deepcopy(model.module if is_parallel(model) else model).half(),
+                            'ema': deepcopy(ema.ema).half(),
+                            'updates': ema.updates,
+                            'optimizer': optimizer.state_dict(),
+                            'wandb_id': wandb_logger.wandb_run.id if wandb_logger.wandb else None}
+                else:
+                    ckpt = {'epoch': epoch,
+                            'best_fitness': best_fitness,
+                            'training_results': results_file.read_text(),
+                            'model': deepcopy(model.module if is_parallel(model) else model),
+                            'ema': deepcopy(ema.ema),
+                            'updates': ema.updates,
+                            'optimizer': optimizer.state_dict(),
+                            'wandb_id': wandb_logger.wandb_run.id if wandb_logger.wandb else None}
                 # Save last, best and delete
                 torch.save(ckpt, last)
                 if best_fitness == fi:
@@ -486,12 +499,13 @@ def train(hyp, opt, device, tb_writer=None):
                                           imgsz=imgsz,
                                           conf_thres=0.001,
                                           iou_thres=0.7,
-                                          model=attempt_load(m, device).half(),
+                                          model=attempt_load(m, device).half() if not nohalf else attempt_load(m,device),
                                           single_cls=opt.single_cls,
                                           dataloader=testloader,
                                           save_dir=save_dir,
                                           save_json=True,
                                           plots=False,
+                                          half_precision=not nohalf,
                                           is_coco=is_coco)
 
         # Strip optimizers
@@ -515,12 +529,12 @@ def train(hyp, opt, device, tb_writer=None):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--weights', type=str, default='', help='initial weights path')
-    parser.add_argument('--cfg', type=str, default='cfg/GMaster/yolov7-4anchor-transCoT3-Full-HorNet-SimAM.yaml', help='model.yaml path')
+    parser.add_argument('--cfg', type=str, default='cfg/GMaster/yolov7-C2fHB-COT2f-SimAM.yaml', help='model.yaml path')
     parser.add_argument('--data', type=str, default='data/armor-2.yaml', help='data.yaml path')
     parser.add_argument('--hyp', type=str, default='data/hyp.scratch.tiny.yaml', help='hyperparameters path')
     parser.add_argument('--epochs', type=int, default=300)
     parser.add_argument('--batch-size', type=int, default=4, help='total batch size for all GPUs')
-    parser.add_argument('--img-size', nargs='+', type=int, default=1280, help='[train, test] image sizes')
+    parser.add_argument('--img-size', nargs='+', type=int, default=[1280, 1280], help='[train, test] image sizes')
     parser.add_argument('--rect', action='store_true', help='rectangular training')
     parser.add_argument('--resume', nargs='?', const=True, default=False, help='resume most recent training')
     parser.add_argument('--nosave', action='store_true', help='only save final checkpoint')
@@ -537,7 +551,7 @@ if __name__ == '__main__':
     parser.add_argument('--sync-bn', action='store_true', help='use SyncBatchNorm, only available in DDP mode')
     parser.add_argument('--local_rank', type=int, default=-1, help='DDP parameter, do not modify')
     parser.add_argument('--workers', type=int, default=8, help='maximum number of dataloader workers')
-    parser.add_argument('--project', default='/root/autodl-tmp/anchor_base_radar/runs/train', help='save to project/name')
+    parser.add_argument('--project', default='/root/autodl-tmp/v7_anchor_base_radar/runs/train', help='save to project/name')
     parser.add_argument('--entity', default=None, help='W&B entity')
     parser.add_argument('--name', default='exp', help='save to project/name')
     parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
@@ -549,6 +563,7 @@ if __name__ == '__main__':
     parser.add_argument('--save_period', type=int, default=-1, help='Log model after every "save_period" epoch')
     parser.add_argument('--artifact_alias', type=str, default="latest", help='version of dataset artifact to be used')
     parser.add_argument('--freeze', nargs='+', type=int, default=[0], help='Freeze layers: backbone of yolov7=50, first3=0 1 2')
+    parser.add_argument('--nohalf', type=bool, default=True, help='resume most recent training')
     opt = parser.parse_args()
 
     # Set DDP variables
@@ -600,7 +615,7 @@ if __name__ == '__main__':
             prefix = colorstr('tensorboard: ')
             logger.info(f"{prefix}Start with 'tensorboard --logdir {opt.project}', view at http://localhost:6006/")
             tb_writer = SummaryWriter(opt.save_dir)  # Tensorboard
-        train(hyp, opt, device, tb_writer)
+        train(hyp, opt, device, opt.nohalf, tb_writer)
 
     # Evolve hyperparameters (optional)
     else:

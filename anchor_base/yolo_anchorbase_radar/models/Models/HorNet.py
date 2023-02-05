@@ -157,7 +157,6 @@ class C3HB(nn.Module):
         self.cv2 = Conv(c1, c_, 1, 1)
         self.cv3 = Conv(2 * c_, c2, 1)
         self.m = nn.Sequential(*(HorBlock(c_) for _ in range(n)))
-
     def forward(self, x):
         return self.cv3(torch.cat((self.m(self.cv1(x)), self.cv2(x)), dim=1))
 
