@@ -37,3 +37,8 @@
 | C2f | SiLU | GIOU | C2f | 150 | × | 0.893 | 0.638 | 165MB | 55 |  
 | C2f + 4detlay | SiLU | GIOU | C2f + SimAM | 150 | √ | 0.901 | 0.691 | 153MB | 25 |
 | C2f + 4detlay | FRelu | SIOU | CoT2f + SimAM | 150 | √ | 0.901 | 0.603 | 155MB | 29 |
+
+### 最终结构
+我们团队最终使用的网络模型配置文件为 ```cfg/GMaster/yolov8_4_C2fHB_COT2f_SimAM.yaml ```。<br>
+下图为该网络的简单结构图：<br>
+![](https://github.com/zRzRzRzRzRzRzR/Mult-YOLO-alogorithm-of-RoboMaster-Radar-Detection-2023/blob/main/show_pic/v8.jpg)

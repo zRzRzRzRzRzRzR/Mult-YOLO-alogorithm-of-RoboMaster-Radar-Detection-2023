@@ -1,6 +1,6 @@
 nc: 14  # number of classes
 depth_multiple: 0.33  # scales module repeats
-width_multiple: 0.55  # scales convolution channels
+width_multiple: 0.5  # scales convolution channels
 anchors: [[], [],[]]
 # YOLOv8.0m backbone
 backbone:

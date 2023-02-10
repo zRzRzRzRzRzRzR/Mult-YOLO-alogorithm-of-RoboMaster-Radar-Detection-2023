@@ -44,6 +44,6 @@
 | CH3B + 4detlay      | FReLU   | SIOU | COT + SimAM      |   200   |    √   | 0.952 | 0.699 |  176MB |    47   |      26      |
 
 ### 最终结构
-我们团队最终使用的网络模型配置文件为 ```cfg/GMaster/yolov7-4anchor-transCoT3-Full-HorNet-SimAM.yaml ```。<br>
+我们团队最终使用的网络模型配置文件为 ```cfg/GMaster/yolov7_4_C3HB_COT3-SimAM.yaml ```。<br>
 下图为该网络的简单结构图：<br>
-![](https://github.com/zRzRzRzRzRzRzR/Mult-YOLO-alogorithm-of-RoboMaster-Radar-Detection-2023/blob/main/show_pic/yolo.png)
+![](https://github.com/zRzRzRzRzRzRzR/Mult-YOLO-alogorithm-of-RoboMaster-Radar-Detection-2023/blob/main/show_pic/v7.jpg)

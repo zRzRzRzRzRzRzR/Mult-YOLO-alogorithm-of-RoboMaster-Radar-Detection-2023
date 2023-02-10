@@ -277,8 +277,7 @@ def train(hyp, opt, device, nohalf=True, tb_writer=None):
 
     # Model parameters
     hyp['box'] *= 3. / nl  # scale to layers
-    hyp['cls'] *= nc / 80. * 3. / nl  # scale to classes and layers
-    # hyp['obj'] *= (imgsz / 640) ** 2 * 3. / nl  # scale to image size and layers
+    hyp['cls'] *= nc / 14 * 3. / nl  # scale to classes and layers
     hyp['label_smoothing'] = opt.label_smoothing
     model.nc = nc  # attach number of classes to model
     model.hyp = hyp  # attach hyperparameters to model
@@ -541,7 +540,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--weights', type=str, default='', help='initial weights path')
     # parser.add_argument('--cfg', type=str, default='cfg/yolov8s.yaml', help='model.yaml path')
-    parser.add_argument('--cfg', type=str, default='cfg/GMaster/yolov8_4anchor.yaml', help='model.yaml path')
+    parser.add_argument('--cfg', type=str, default='cfg/GMaster/yolov8_4_C2fHB_COT2f_SimAM.yaml', help='model.yaml path')
     parser.add_argument('--data', type=str, default='data/armor-2.yaml', help='data.yaml path')
     parser.add_argument('--hyp', type=str, default='data/hyp.scratch.tiny.yaml', help='hyperparameters path')
     parser.add_argument('--epochs', type=int, default=300)
@@ -577,7 +576,7 @@ if __name__ == '__main__':
     parser.add_argument('--artifact_alias', type=str, default="latest", help='version of dataset artifact to be used')
     parser.add_argument('--freeze', nargs='+', type=int, default=[0],
                         help='Freeze layers: backbone of yolov7=50, first3=0 1 2')
-    parser.add_argument('--nohalf', type=bool, default=False, help='resume most recent training')
+    parser.add_argument('--nohalf', type=bool, default=True, help='resume most recent training')
     opt = parser.parse_args()
 
     # Set DDP variables

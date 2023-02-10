@@ -529,7 +529,7 @@ def train(hyp, opt, device, nohalf=True, tb_writer=None):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--weights', type=str, default='', help='initial weights path')
-    parser.add_argument('--cfg', type=str, default='cfg/GMaster/yolov7-C2fHB-COT2f-SimAM.yaml', help='model.yaml path')
+    parser.add_argument('--cfg', type=str, default='cfg/GMaster/yolov7-C3HB-COT3-SimAM.yaml', help='model.yaml path')
     parser.add_argument('--data', type=str, default='data/armor-2.yaml', help='data.yaml path')
     parser.add_argument('--hyp', type=str, default='data/hyp.scratch.tiny.yaml', help='hyperparameters path')
     parser.add_argument('--epochs', type=int, default=300)

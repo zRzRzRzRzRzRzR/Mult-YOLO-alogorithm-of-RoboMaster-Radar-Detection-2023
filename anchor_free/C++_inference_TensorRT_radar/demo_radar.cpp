@@ -1,6 +1,6 @@
 #include "yolov8_radar.h"
 
-#define VIDEOS_PATH "/home/knight/Sharefolder_Knight/test_R2_small.mp4"
+#define VIDEOS_PATH "/home/knight/Sharefolder_Knight/cut3.avi"
 std::vector<yolo_radar_trt::Object_result> result;
 
 int main() {

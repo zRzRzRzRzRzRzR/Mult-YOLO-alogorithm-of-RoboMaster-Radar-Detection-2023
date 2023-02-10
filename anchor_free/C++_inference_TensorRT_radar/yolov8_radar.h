@@ -12,7 +12,7 @@
 #define CONF_THRESHOLD 0.50f //置信度参数
 #define DEBUG //是否开启debug模式，开启以后输出推理过程和帧数
 //#define VIDEOS //是否展示推理视频
-#define MODEL_PATH "/home/knight/Sharefolder_Knight/yolov8_4-SimAM_m_150.trtmodel" //网络位置，格式为 yourmodel.精度.trtmodel
+#define MODEL_PATH "/home/knight/Sharefolder_Knight/yolov8.trtmodel" //网络位置，格式为 yourmodel.精度.trtmodel
 using namespace std;
 using namespace cv;
 

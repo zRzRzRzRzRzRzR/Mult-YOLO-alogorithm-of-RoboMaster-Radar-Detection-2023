@@ -9,15 +9,17 @@ from utils.assigner import TaskAlignedAssigner
 from utils.torch_utils import de_parallel
 def smooth_BCE(eps=0.1):
     return 1.0 - 0.5 * eps, 0.5 * eps
+
 class VarifocalLoss(nn.Module):
     def __init__(self):
         super().__init__()
 
     def forward(self, pred_score, gt_score, label, alpha=0.75, gamma=2.0):
+
         weight = alpha * pred_score.sigmoid().pow(gamma) * (1 - label) + gt_score * label
         with torch.cuda.amp.autocast(enabled=False):
-            loss = (F.binary_cross_entropy_with_logits(pred_score.float(), gt_score.float(),
-                                                       reduction="none") * weight).sum()
+            loss = (F.binary_cross_entropy_with_logits(pred_score.float(), gt_score.float(), reduction="none") *
+                    weight).sum()
         return loss
 
 
@@ -101,8 +103,6 @@ class ComputeLoss:
         h = model.hyp  # hyperparameters
 
         # Define criteria
-        # BCEcls = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([h["cls_pw"]], device=device), reduction='none')
-        # BCEcls = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([h["cls_pw"]], device=device), reduction='none')
         BCEcls = nn.BCEWithLogitsLoss(reduction='none')
         self.cp, self.cn = smooth_BCE(eps=h.get("label_smoothing", 0.0))
         g = h["fl_gamma"]
@@ -111,16 +111,18 @@ class ComputeLoss:
         m = de_parallel(model).model[-1]
         self.balance = {3: [4.0, 1.0, 0.4]}.get(m.nl, [4.0, 1.0, 0.25, 0.06, 0.02])  # P3-P7
         self.BCEcls = BCEcls
+        self.varifocal_loss = VarifocalLoss()
         self.hyp = h
         self.stride = m.stride  # model strides
         self.nc = m.nc  # number of classes
         self.nl = m.nl  # number of layers
         self.device = device
+        # self.assigner = TaskAlignedAssigner(topk=int(os.getenv('YOLOM', 10)),
+        #                                     num_classes=self.nc,
+        #                                     alpha=float(os.getenv('YOLOA', 0.5)),
+        #                                     beta=float(os.getenv('YOLOB', 6.0)))
 
-        self.assigner = TaskAlignedAssigner(topk=int(os.getenv('YOLOM', 10)),
-                                            num_classes=self.nc,
-                                            alpha=float(os.getenv('YOLOA', 0.5)),
-                                            beta=float(os.getenv('YOLOB', 6.0)))
+        self.assigner = TaskAlignedAssigner(topk=10, num_classes=self.nc, alpha=0.5, beta=6.0)
         self.bbox_loss = BboxLoss(m.reg_max - 1, use_dfl=use_dfl).to(device)
         self.proj = torch.arange(m.reg_max).float().to(device)  # / 120.0
         self.use_dfl = use_dfl
@@ -176,7 +178,8 @@ class ComputeLoss:
             mask_gt)
 
         target_bboxes /= stride_tensor
-        target_scores_sum = target_scores.sum()
+        target_scores_sum = max(target_scores.sum(), 1)
+
 
         # cls loss
         # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
@@ -192,8 +195,8 @@ class ComputeLoss:
                                                    target_scores_sum,
                                                    fg_mask)
 
-        loss[0] *= 7.5  # box gain
-        loss[1] *= 0.5  # cls gain
-        loss[2] *= 1.5  # dfl gain
+        loss[0] *= self.hyp['box']  # box gain
+        loss[1] *= self.hyp['cls']  # cls gain
+        loss[2] *= self.hyp['dfl']  # dfl gain
 
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
