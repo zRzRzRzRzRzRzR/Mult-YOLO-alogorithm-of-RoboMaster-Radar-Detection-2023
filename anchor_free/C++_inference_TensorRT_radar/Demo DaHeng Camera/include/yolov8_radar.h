@@ -7,12 +7,17 @@
 #include <future>
 #include <opencv2/opencv.hpp>
 
+#define FOCAL_LENGTH 12.0
+#define BASELINE 800.0
+#define PIXEL_SIZE 4e-3
+
+
 #define GPU_ID 0 //显卡编号
-#define NMS_THRESHOLD 0.20f //NMS参数
-#define CONF_THRESHOLD 0.70f //置信度参数
+#define NMS_THRESHOLD 0.45f //NMS参数
+#define CONF_THRESHOLD 0.50f //置信度参数
 #define DEBUG //是否开启debug模式，开启以后输出推理过程和帧数
 //#define VIDEOS //是否展示推理视频
-#define MODEL_PATH "/home/knight/Sharefolder_Knight/best.trtmodel" //网络位置，格式为 yourmodel.精度.trtmodel
+#define MODEL_PATH "/media/zr/Data/DeepLearn_data/Mult-YOLO-alogorithm-of-RoboMaster-Radar-Detection-2023/anchor_free/C++_inference_TensorRT_radar/radar_0715_grid.trt" //网络位置，格式为 yourmodel.精度.trtmodel
 using namespace std;
 using namespace cv;
 
@@ -56,7 +61,7 @@ namespace yolo_radar_trt {
     create_infer(const string &engine_file, Type type, int gpuid, float confidence_threshold, float nms_threshold);
 
     const std::vector<std::string> class_names = {
-            "B1", "B2", "B3", "B4", "B5", "BO", "BS", "R1", "R2", "R3", "R4", "R5", "RO", "RS"
+            "B1", "B2", "B3", "B4", "B5", "BO", "BS", "R1", "R2", "R3", "R4", "R5", "RO", "RS","BB","RB"
     };
 
 

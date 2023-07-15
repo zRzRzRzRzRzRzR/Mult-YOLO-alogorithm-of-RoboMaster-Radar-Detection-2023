@@ -1,7 +1,7 @@
-# XJTLU GMaster zR
+# XJTLU radar zR
 nc: 14  # number of classes
 depth_multiple: 0.33  # scales module repeats
-width_multiple: 0.5  # scales convolution channels
+width_multiple: 0.50  # scales convolution channels
 anchors: [[], [], [],[]]
 backbone:
   # [from,number,module,args]
@@ -12,39 +12,39 @@ backbone:
     [-1, 6, C2fHB, [256]],
     [-1, 1, Conv, [512, 3, 2]],  # 5-P4/16
     [-1, 6, C2fHB, [512]],
-    [-1, 1, Conv, [512, 3, 2]],  # 7-P5/32
-    [-1, 3, C2fHB, [512]],
+    [-1, 1, Conv, [1024, 3, 2]],  # 7-P5/32
+    [-1, 3, C2fHB, [1024]],
 ]
 head:
-  [ [ -1, 1, SPPFCSPC, [512] ],
+  [ [ -1, 1, SPPFCSPC, [1024] ],
 
     [ -1, 1, nn.Upsample, [ None, 2, 'nearest' ] ],
     [ [ -1, 6 ], 1, Concat, [ 1 ] ],  # cat backbone P4
-    [ -1, 3, CoT2f, [ 512 ] ],  # 12
+    [ -1, 3, C2fHB, [ 512 ] ],  # 12
 
     [ -1, 1, nn.Upsample, [ None, 2, 'nearest' ] ],
     [ [ -1, 4 ], 1, Concat, [ 1 ] ],  # cat backbone P3
-    [ -1, 3, CoT2f, [ 256 ] ],  # 15 (P3/8-small)
+    [ -1, 3, C2fHB, [ 256 ] ],  # 15 (P3/8-small)
 
     [ -1, 1, nn.Upsample,[ None, 2, 'nearest' ] ],
     [ [ -1, 2 ], 1, Concat,[ 1 ] ],  # cat backbone P2
-    [ -1, 3, CoT2f, [ 128 ] ],  # 18 (P3/8-small)
+    [ -1, 3, C2fHB, [ 128 ] ],  # 18 (P3/8-small)
     [ -1, 1, SimAM, [ 128 ] ],
 
     [ -1, 1, Conv, [ 128, 3, 2 ] ],
     [ [ -1, 15 ], 1, Concat,[ 1 ] ],  # cat head P3
-    [ -1, 3, CoT2f, [ 256 ] ],  # 22 (P4/16-small)
+    [ -1, 3, C2fHB, [ 256 ] ],  # 22 (P4/16-small)
     [ -1, 1, SimAM, [ 256 ] ],
 
     [ -1, 1, Conv, [ 256, 3, 2 ] ],
     [ [ -1, 12 ], 1, Concat, [ 1 ] ],  # cat head P4
-    [ -1, 3, CoT2f, [ 512 ] ],  # 26 (P4/16-medium)
+    [ -1, 3, C2fHB, [ 512 ] ],  # 26 (P4/16-medium)
     [ -1, 1, SimAM, [ 512 ] ],
 
     [ -1, 1, Conv, [ 512, 3, 2 ] ],
     [ [ -1, 9 ], 1, Concat, [ 1 ] ],  # cat head P5
-    [ -1, 3, CoT2f, [ 768 ] ],  # 30 (P5/32-large)
-    [ -1, 1, SimAM, [ 768 ] ],
+    [ -1, 3, C2fHB, [ 1024 ] ],  # 30 (P5/32-large)
+    [ -1, 1, SimAM, [ 1024 ] ],
 
-    [ [ 19, 23, 27, 31 ], 1, V8Detect, [ nc ] ]  # Detect(P3, P4, P5)
+    [ [ 19, 23, 27, 31], 1, V8Detect,[ nc]]  # Detect(P3, P4, P5)
   ]

@@ -24,14 +24,12 @@ class GlobalLocalFilter(nn.Module):
 
         x2 = x2.to(torch.float32)
         B, C, a, b = x2.shape  # dummy
-        tt1 = time()
-        x2 = torch.fft.rfft2(x2, dim=(2, 3), norm='ortho')
-        # print(type(x2), end='\n\n\n')
+        x2 = torch.fft.rfft2(x2, dim=(2, 3), norm='ortho') # For train
+
         # device=str(x2.device)
         # x2 = x2.detach().cpu().numpy()
-        # x2 = np.fft.rfft2(x2, axes=(-2, -1), norm='ortho')
+        # x2 = np.fft.rfft2(x2, axes=(-2, -1), norm='ortho')  # For Export
         # x2 = torch.tensor(x2).to(torch.complex64).to(device)
-        # print("t1 use:{}".format(time()-tt1))
 
         weight = self.complex_weight
         if not weight.shape[1:3] == x2.shape[2:4]:
@@ -40,12 +38,13 @@ class GlobalLocalFilter(nn.Module):
 
         weight = torch.view_as_complex(weight.contiguous())
         x2 = x2 * weight
-        tt1 = time()
-        x2 = torch.fft.irfft2(x2, s=(a, b), dim=(2, 3), norm='ortho')
+        x2 = torch.fft.irfft2(x2, s=(a, b), dim=(2, 3), norm='ortho') # For train
+
+
         # x2 = x2.detach().cpu().numpy()
-        # x2 = np.fft.irfft2(x2, s=(a, b), axes=(-2, -1), norm='ortho')
+        # x2 = np.fft.irfft2(x2, s=(a, b), axes=(-2, -1), norm='ortho') # For Export
         # x2 = torch.tensor(x2).to(torch.float32).to(device)
-        # print("t2 use:{}".format(time()-tt1))
+
         x = torch.cat([x1.unsqueeze(2), x2.unsqueeze(2)], dim=2).reshape(B, 2 * C, a, b)
         x = self.post_norm(x)
         return x

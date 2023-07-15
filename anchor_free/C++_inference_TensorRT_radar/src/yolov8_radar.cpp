@@ -1,4 +1,4 @@
-#include "yolov8_radar.h"
+#include "include/yolov8_radar.h"
 #include <string>
 #include <condition_variable>
 #include <queue>
@@ -34,8 +34,8 @@ shared_ptr<yolo_radar_trt::Infer> yolo_radar_trt::prepare(yolo_radar_trt::Type t
     return yolo;
 }
 
-vector<yolo_radar_trt::Object_result> yolo_radar_trt::work(shared_ptr<yolo_radar_trt::Infer> yolo, Mat frame) {
-    vector<yolo_radar_trt::Object_result> object_result;
+vector<yolo_radar_trt::Object> yolo_radar_trt::work(shared_ptr<yolo_radar_trt::Infer> yolo, Mat frame,string frame_name) {
+    vector<yolo_radar_trt::Object> object_result;
 #ifdef DEBUG
     cv::TickMeter meter;
     meter.start();
@@ -45,25 +45,22 @@ vector<yolo_radar_trt::Object_result> yolo_radar_trt::work(shared_ptr<yolo_radar
 #ifdef VIDEOS
         drawPred(obj.label, obj.prob, obj.rect, frame, yolo_radar_trt::class_names);
 #endif
-        yolo_radar_trt::Object_result tmp;
-        tmp.bbox = obj.rect;
-        tmp.prob = obj.prob;
-        tmp.label = obj.label;
-        object_result.push_back(tmp);
+        obj.depth = 0;
+        object_result.push_back(obj);
     }
 
 #ifdef VIDEOS
-    imshow("frame", frame);
-//    imwrite("/home/knight/Sharefolder_Knight/result.jpg",frame);
+    cv::namedWindow(frame_name, cv::WINDOW_NORMAL);  // 创建一个可以调整大小的窗口
+    cv::resizeWindow(frame_name, 640, 512);  // 设定窗口的大小
+    imshow(frame_name, frame);
     cv::waitKey(1);
 #endif
 #ifdef DEBUG
     meter.stop();
-    printf("Time: %f\n", meter.getTimeMilli());
+//    printf("Time: %f\n", meter.getTimeMilli());
     meter.reset();
 #endif
     return object_result;
 }
-
 
 

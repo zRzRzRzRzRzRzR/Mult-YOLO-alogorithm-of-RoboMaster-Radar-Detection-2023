@@ -1,0 +1,8 @@
+train: /media/zr/Data/RoboMaster_data/dataset/XJTLU_radar/images/train/  # train images (relative to 'path') 128 images
+val: /media/zr/Data/RoboMaster_data/dataset/XJTLU_radar/images/val/  # val images (relative to 'path') 128 images
+test:  # test images (optional)
+
+# Classes
+nc: 16
+names: ['B1','B2','B3','B4','B5','BO','BS','R1','R2','R3','R4','R5','RO','RS','BB','RB']
+# 0 b1 1 b2 2 b3 3 b4 4 b5 5 bo 6 bs 7 r1 8 r2 9 r3 10 r4 11 r5 12 ro 13 rs

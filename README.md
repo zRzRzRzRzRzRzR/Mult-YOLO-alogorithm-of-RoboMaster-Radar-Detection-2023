@@ -80,6 +80,7 @@ C++_inference_TensorRT_radar: TensorRT推理代码（用于NVIDIA的GPU推理加
 | B5 | 蓝方五号装甲板 | 4 | R5 | 红方五号装甲板 | 11 |
 | BO | 蓝方前哨站装甲板 | 5 | RO| 红方前哨站装甲板 | 12 |
 | BS | 蓝方哨兵装甲板 | 6 | RS | 红方哨兵装甲板 | 13 |
+| BB | 蓝方基地飞镖打击装甲 | 14 | RB | 红方基地飞镖打击装甲板 | 15 |
 
 + 如果该数据集类别顺序与你的不相符， 你可以使用```pre-processing_script/change_change_label.py```
   脚本批量修改你的标签。或者修改代码成符合你的数据集顺序。

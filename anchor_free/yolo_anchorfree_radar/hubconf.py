@@ -29,7 +29,7 @@ def create(name, pretrained, channels, classes, autoshape):
         return model.to(device)
 
     except Exception as e:
-        s = 'Cache maybe be out of date, GMaster force_reload=True.'
+        s = 'Cache maybe be out of date, radar force_reload=True.'
         raise Exception(s) from e
 
 

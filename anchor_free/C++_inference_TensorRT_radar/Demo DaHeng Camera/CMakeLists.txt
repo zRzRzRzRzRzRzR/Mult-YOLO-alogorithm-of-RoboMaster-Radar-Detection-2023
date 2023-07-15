@@ -6,7 +6,7 @@ add_compile_options(-std=c++17)
 option(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE Debug)
-set(CUDA_TOOLKIT_ROOT_DIR "/usr/local/cuda-11.8")
+set(CUDA_TOOLKIT_ROOT_DIR "/usr/local/cuda-12.0")
 set(CMAKE_EXE_LINKER_FLAGS
         -I$(GENICAM_ROOT_V2_3)/library/CPP/include
         -I$(DAHENG_ROOT)/sdk/include
@@ -18,6 +18,7 @@ find_package(OpenCV REQUIRED)
 include_directories(
         include
         ${OpenCV_INCLUDE_DIRS}
+        ${YAML_CPP_INCLUDE_DIR}
         ${CUDA_DIR}/include
         ${TENSORRT_DIR}/include
         ${CUDNN_DIR}/include
@@ -45,13 +46,14 @@ add_executable(
         include/GxIAPI.h
         include/DH_CAM.h
         src/DH_CAM.cpp
-        src/yolov7_radar.cpp
-        include/yolov7_radar.h
-        src/yolov7_radar.cu)
+        src/yolov8_radar.cpp
+        include/yolov8_radar.h
+        src/yolov8_radar.cu)
 
 target_link_libraries(
         DaHeng_Camera_TensorRT_Radar
         ${OpenCV_LIBRARIES}
+        ${YAML_CPP_LIBRARIES}
         -lglog
         -lgxiapi
 )

@@ -12,7 +12,6 @@ if str(ROOT) not in sys.path:
 from models.common import *
 from models.experimental import *
 from utils.general import LOGGER, check_yaml, make_divisible, print_args
-from utils.plots import feature_visualization
 from utils.torch_utils import (fuse_conv_and_bn, initialize_weights, model_info, profile, scale_img, select_device,
                                time_sync)
 from utils.anchor_generator import make_anchors, dist2bbox
@@ -81,8 +80,6 @@ class BaseModel(nn.Module):
                 self._profile_one_layer(m, x, dt)
             x = m(x)  # run
             y.append(x if m.i in self.save else None)  # save output
-            if visualize:
-                feature_visualization(x, m.type, m.i, save_dir=visualize)
         return x
 
     def _profile_one_layer(self, m, x, dt):
@@ -223,7 +220,11 @@ def parse_model(d, ch):
         Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = nn.SiLU()
         LOGGER.info(f"{colorstr('activation:')} {act}")  # print
     na = (len(anchors[0]) // 2) if isinstance(anchors, list) else anchors  # number of anchors
-    no = na * (nc + 5)  # number of outputs = anchors * (classes + 5)
+    try:
+        nkpt = d['nkpt']
+        no = na * (nc + 5 + 2 * nkpt)  # number of outputs = anchors * (classes + 5)
+    except:
+        no = na * (nc + 5)  # number of outputs = anchors * (classes + 5)
 
     layers, save, c2 = [], [], ch[-1]  # layers, savelist, ch out
     for i, (f, n, m, args) in enumerate(d['backbone'] + d['head']):  # from, number, module, args
@@ -265,6 +266,10 @@ def parse_model(d, ch):
             args = [c1, c2]
         elif m in {V8Detect}:
             args.append([ch[x] for x in f])
+        # elif m in {V8KeyPoint}:
+        #     args.append([ch[x] for x in f])
+        #     if 'dw_conv_kpt' in d.keys():
+        #         args_dict = {"dw_conv_kpt": d['dw_conv_kpt']}
         elif m is Contract:
             c2 = ch[f] * args[0] ** 2
         elif m is Expand:

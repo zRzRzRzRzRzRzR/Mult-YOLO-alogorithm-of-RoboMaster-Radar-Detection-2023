@@ -12,6 +12,7 @@ import torch
 import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.backends import cudnn
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 from utils.general import LOGGER, check_version, colorstr, file_date, git_describe
@@ -477,3 +478,12 @@ def time_synchronized():
     if torch.cuda.is_available():
         torch.cuda.synchronize()
     return time.time()
+
+
+def init_torch_seeds(seed=0):
+    # Speed-reproducibility tradeoff https://pytorch.org/docs/stable/notes/randomness.html
+    torch.manual_seed(seed)
+    if seed == 0:  # slower, more reproducible
+        cudnn.benchmark, cudnn.deterministic = False, True
+    else:  # faster, less reproducible
+        cudnn.benchmark, cudnn.deterministic = True, False

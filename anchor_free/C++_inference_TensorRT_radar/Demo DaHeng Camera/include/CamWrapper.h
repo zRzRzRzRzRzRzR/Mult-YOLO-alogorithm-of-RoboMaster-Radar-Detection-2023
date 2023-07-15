@@ -1,6 +1,3 @@
-//
-// Created by whoismz on 1/2/22.
-//
 #ifndef GMASTER_WM_NEW_CAMWRAPPER_H
 #define GMASTER_WM_NEW_CAMWRAPPER_H
 #include <opencv2/opencv.hpp>

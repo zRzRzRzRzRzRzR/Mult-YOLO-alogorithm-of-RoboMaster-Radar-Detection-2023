@@ -17,7 +17,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 #if defined(_WIN32)
-    #ifndef _STDINT_H 
+    #ifndef _STDINT_H
         #ifdef _MSC_VER // Microsoft compiler
             #if _MSC_VER < 1600
                 typedef __int8            int8_t;
@@ -36,7 +36,7 @@
             // Not a Microsoft compiler
             #include <stdint.h>
         #endif
-    #endif 
+    #endif
 #else
     // Linux
     #include <stdint.h>
@@ -79,8 +79,8 @@
             #define GX_STDC __attribute__((stdcall))
             #define GX_CDEC __attribute__((cdecl))
         #else
-            #define GX_STDC 
-            #define GX_CDEC 
+            #define GX_STDC
+            #define GX_CDEC
         #endif
 
         #if defined(__cplusplus)
@@ -421,7 +421,7 @@ typedef enum GX_FEATURE_ID
     GX_BOOL_CHUNKMODE_ACTIVE         = 10001 | GX_FEATURE_BOOL | GX_FEATURE_LEVEL_REMOTE_DEV, ///< Activates the inclusion of Chunk data in the payload of the image.
     GX_ENUM_CHUNK_SELECTOR           = 10002 | GX_FEATURE_ENUM | GX_FEATURE_LEVEL_REMOTE_DEV, ///< Selects which Chunk to enable or control.
     GX_BOOL_CHUNK_ENABLE             = 10003 | GX_FEATURE_BOOL | GX_FEATURE_LEVEL_REMOTE_DEV, ///< Enables the inclusion of the selected Chunk data in the payload of the image.
-    
+
     //---------------Color Transformation Control-------------------------
     GX_ENUM_COLOR_TRANSFORMATION_MODE       = 11000 | GX_FEATURE_ENUM | GX_FEATURE_LEVEL_REMOTE_DEV,     ///< Color conversion selection, see also GX_COLOR_TRANSFORMATION_MODE_ENTRY
     GX_BOOL_COLOR_TRANSFORMATION_ENABLE     = 11001 | GX_FEATURE_BOOL | GX_FEATURE_LEVEL_REMOTE_DEV,     ///< Activates the selected Color Transformation module.
@@ -956,7 +956,7 @@ typedef enum GX_COUNTER_RESET_ACTIVATION_ENTRY
 #define GX_INFO_LENGTH_64_BYTE  (64) ///< 64 bytes
 #define GX_INFO_LENGTH_128_BYTE (128)///< 128 bytes
 
-typedef struct GX_DEVICE_IP_INFO 
+typedef struct GX_DEVICE_IP_INFO
 {
     char szDeviceID[GX_INFO_LENGTH_64_BYTE + 4];         ///< the unique identifier of the device, 64+4 bytes
     char szMAC[GX_INFO_LENGTH_32_BYTE];                  ///< MAC address, 32 bytes,
@@ -971,7 +971,7 @@ typedef struct GX_DEVICE_IP_INFO
     char reserved[512];                                  ///< reserved, 512 bytes
 }GX_DEVICE_IP_INFO;
 
-typedef struct GX_DEVICE_BASE_INFO 
+typedef struct GX_DEVICE_BASE_INFO
 {
     char szVendorName[GX_INFO_LENGTH_32_BYTE];           ///< vendor name, 32 bytes
     char szModelName[GX_INFO_LENGTH_32_BYTE];            ///< model name, 32 bytes
@@ -984,7 +984,7 @@ typedef struct GX_DEVICE_BASE_INFO
     char reserved[300];                                  ///< reserved, 300 bytes
 }GX_DEVICE_BASE_INFO;
 
-typedef struct GX_OPEN_PARAM 
+typedef struct GX_OPEN_PARAM
 {
     char              *pszContent;                       ///< Standard C string that is decided by openMode. It could be an IP address, a camera serial number, and so on
     GX_OPEN_MODE_CMD   openMode;                         ///< Device open mode. The device can be open via the SN, IP, MAC, etc. Please refer to GX_OPEN_MODE
@@ -1492,8 +1492,8 @@ GX_API GXGetEnumEntryNums (GX_DEV_HANDLE hDevice, GX_FEATURE_ID_CMD featureID, u
             The errors that are not covered above please reference GX_STATUS_LIST.
 */
 //----------------------------------------------------------------------------------
-GX_API GXGetEnumDescription (GX_DEV_HANDLE hDevice, 
-                             GX_FEATURE_ID_CMD featureID, 
+GX_API GXGetEnumDescription (GX_DEV_HANDLE hDevice,
+                             GX_FEATURE_ID_CMD featureID,
                              GX_ENUM_DESCRIPTION *pEnumDescription,
                              size_t *pBufferSize);
 
@@ -1632,8 +1632,8 @@ GX_API GXGetStringMaxLength (GX_DEV_HANDLE hDevice, GX_FEATURE_ID_CMD featureID,
             The errors that are not covered above please reference GX_STATUS_LIST.
 */
 //----------------------------------------------------------------------------------
-GX_API GXGetString (GX_DEV_HANDLE hDevice, 
-                    GX_FEATURE_ID_CMD featureID, 
+GX_API GXGetString (GX_DEV_HANDLE hDevice,
+                    GX_FEATURE_ID_CMD featureID,
                     char *pszContent,
                     size_t *pnSize);
 
@@ -1698,8 +1698,8 @@ GX_API GXGetBufferLength (GX_DEV_HANDLE hDevice, GX_FEATURE_ID_CMD featureID, si
             The errors that are not covered above please reference GX_STATUS_LIST.
 */
 //----------------------------------------------------------------------------------
-GX_API GXGetBuffer (GX_DEV_HANDLE hDevice, 
-                    GX_FEATURE_ID_CMD featureID, 
+GX_API GXGetBuffer (GX_DEV_HANDLE hDevice,
+                    GX_FEATURE_ID_CMD featureID,
                     uint8_t *pBuffer,
                     size_t *pnSize);
 
@@ -1722,8 +1722,8 @@ GX_API GXGetBuffer (GX_DEV_HANDLE hDevice,
             The errors that are not covered above please reference GX_STATUS_LIST.
 */
 //----------------------------------------------------------------------------------
-GX_API GXSetBuffer (GX_DEV_HANDLE hDevice, 
-                    GX_FEATURE_ID_CMD featureID, 
+GX_API GXSetBuffer (GX_DEV_HANDLE hDevice,
+                    GX_FEATURE_ID_CMD featureID,
                     uint8_t *pBuffer,
                     size_t nSize);
 
@@ -1818,7 +1818,7 @@ GX_API GXStreamOff (GX_DEV_HANDLE hDevice);
             The errors that are not covered above please reference GX_STATUS_LIST.
 */
 //----------------------------------------------------------------------------------
-GX_API GXDQBuf (GX_DEV_HANDLE hDevice, 
+GX_API GXDQBuf (GX_DEV_HANDLE hDevice,
                 PGX_FRAME_BUFFER *ppFrameBuffer,
                 uint32_t nTimeOut);
 
@@ -1863,9 +1863,9 @@ GX_API GXQBuf (GX_DEV_HANDLE hDevice, PGX_FRAME_BUFFER pFrameBuffer);
             The errors that are not covered above please reference GX_STATUS_LIST.
 */
 //----------------------------------------------------------------------------------
-GX_API GXDQAllBufs (GX_DEV_HANDLE hDevice, 
-                    PGX_FRAME_BUFFER *ppFrameBufferArray, 
-                    uint32_t nFrameBufferArraySize, 
+GX_API GXDQAllBufs (GX_DEV_HANDLE hDevice,
+                    PGX_FRAME_BUFFER *ppFrameBufferArray,
+                    uint32_t nFrameBufferArraySize,
                     uint32_t *pnFrameCount,
                     uint32_t nTimeOut);
 
@@ -1974,9 +1974,9 @@ GX_API GXFlushQueue (GX_DEV_HANDLE hDevice);
             The errors that are not covered above please reference GX_STATUS_LIST.
 */
 //----------------------------------------------------------------------------------
-GX_API GXRegisterDeviceOfflineCallback (GX_DEV_HANDLE hDevice, 
+GX_API GXRegisterDeviceOfflineCallback (GX_DEV_HANDLE hDevice,
                                         void *pUserParam,
-                                        GXDeviceOfflineCallBack callBackFun, 
+                                        GXDeviceOfflineCallBack callBackFun,
                                         GX_EVENT_CALLBACK_HANDLE *pHCallBack);
 
 //----------------------------------------------------------------------------------
@@ -2039,9 +2039,9 @@ GX_API GXGetEventNumInQueue (GX_DEV_HANDLE hDevice, uint32_t *pnEventNum);
             The errors that are not covered above please reference GX_STATUS_LIST.
 */
 //----------------------------------------------------------------------------------
-GX_API GXRegisterFeatureCallback (GX_DEV_HANDLE hDevice, 
+GX_API GXRegisterFeatureCallback (GX_DEV_HANDLE hDevice,
                                   void *pUserParam,
-                                  GXFeatureCallBack callBackFun, 
+                                  GXFeatureCallBack callBackFun,
                                   GX_FEATURE_ID_CMD featureID,
                                   GX_FEATURE_CALLBACK_HANDLE *pHCallBack);
 
@@ -2057,8 +2057,8 @@ GX_API GXRegisterFeatureCallback (GX_DEV_HANDLE hDevice,
             The errors that are not covered above please reference GX_STATUS_LIST.
 */
 //----------------------------------------------------------------------------------
-GX_API GXUnregisterFeatureCallback (GX_DEV_HANDLE hDevice, 
-                                    GX_FEATURE_ID_CMD featureID, 
+GX_API GXUnregisterFeatureCallback (GX_DEV_HANDLE hDevice,
+                                    GX_FEATURE_ID_CMD featureID,
                                     GX_FEATURE_CALLBACK_HANDLE hCallBack);
 
 //----------------------------------------------------------------------------------
@@ -2102,8 +2102,8 @@ GX_API GXImportConfigFile (GX_DEV_HANDLE hDevice, const char *pszFilePath, bool 
             The errors that are not covered above please reference GX_STATUS_LIST.
 */
 //----------------------------------------------------------------------------------
-GX_API GXReadRemoteDevicePort (GX_DEV_HANDLE hDevice, 
-                               uint64_t ui64Address, 
+GX_API GXReadRemoteDevicePort (GX_DEV_HANDLE hDevice,
+                               uint64_t ui64Address,
                                void *pBuffer,
                                size_t *piSize);
 
@@ -2121,8 +2121,8 @@ GX_API GXReadRemoteDevicePort (GX_DEV_HANDLE hDevice,
             The errors that are not covered above please reference GX_STATUS_LIST.
 */
 //----------------------------------------------------------------------------------
-GX_API GXWriteRemoteDevicePort (GX_DEV_HANDLE hDevice, 
-                                uint64_t ui64Address, 
+GX_API GXWriteRemoteDevicePort (GX_DEV_HANDLE hDevice,
+                                uint64_t ui64Address,
                                 const void *pBuffer,
                                 size_t *piSize);
 
@@ -2148,7 +2148,7 @@ GX_API GXWriteRemoteDevicePort (GX_DEV_HANDLE hDevice,
             The errors that are not covered above please reference GX_STATUS_LIST.
 */
 //----------------------------------------------------------------------------------
-GX_API GXGetDevicePersistentIpAddress (GX_DEV_HANDLE hDevice, 
+GX_API GXGetDevicePersistentIpAddress (GX_DEV_HANDLE hDevice,
                                        char   *pszIP,
                                        size_t *pnIPLength,
                                        char   *pszSubNetMask,
@@ -2224,7 +2224,7 @@ GX_API GXGigEForceIp (const char *pszDeviceMacAddress,
                       const char *pszIpAddress,
                       const char *pszSubnetMask,
                       const char *pszDefaultGateway);
-                                   
+
 
 // ---------------------------------------------------------------------------
 /**

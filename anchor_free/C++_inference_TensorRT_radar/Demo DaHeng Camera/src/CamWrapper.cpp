@@ -2,13 +2,7 @@
 #include <glog/logging.h>
 #include <chrono>
 #include <mutex>
-
-
-#if RADAR_MODE == true
-int ROI_W = 1280 ,ROI_H = 1080;
-#else
-int ROI_W = 640 ,ROI_H = 384;
-#endif
+int ROI_W = 1280 ,ROI_H = 1024;
 void update_bool(GX_STATUS status, bool &flag, const std::string &w_str = "") {
     if (status != GX_STATUS_SUCCESS) {
         flag = true;

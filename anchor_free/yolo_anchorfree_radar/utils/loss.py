@@ -1,8 +1,9 @@
 import os
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from utils.general import xywh2xyxy
 from utils.metrics import bbox_iou
 from utils.anchor_generator import dist2bbox, make_anchors, bbox2dist
 from utils.assigner import TaskAlignedAssigner
@@ -139,7 +140,7 @@ class ComputeLoss:
                 n = matches.sum()
                 if n:
                     out[j, :n] = targets[matches, 1:]
-            out[..., 1:5] = xywh2xyxy(out[..., 1:5].mul_(scale_tensor))
+            out[..., 1:5] = self.xywh2xyxy(out[..., 1:5].mul_(scale_tensor))
         return out
 
     def bbox_decode(self, anchor_points, pred_dist):
@@ -149,6 +150,15 @@ class ComputeLoss:
             # pred_dist = pred_dist.view(b, a, c // 4, 4).transpose(2,3).softmax(3).matmul(self.proj.type(pred_dist.dtype))
             # pred_dist = (pred_dist.view(b, a, c // 4, 4).softmax(2) * self.proj.type(pred_dist.dtype).view(1, 1, -1, 1)).sum(2)
         return dist2bbox(pred_dist, anchor_points, xywh=False)
+
+    def xywh2xyxy(self, x):
+
+        y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
+        y[..., 0] = x[..., 0] - x[..., 2] / 2  # top left x
+        y[..., 1] = x[..., 1] - x[..., 3] / 2  # top left y
+        y[..., 2] = x[..., 0] + x[..., 2] / 2  # bottom right x
+        y[..., 3] = x[..., 1] + x[..., 3] / 2  # bottom right y
+        return y
 
     def __call__(self, p, targets, img=None, epoch=0):
         loss = torch.zeros(3, device=self.device)  # box, cls, dfl
@@ -195,8 +205,116 @@ class ComputeLoss:
                                                    target_scores_sum,
                                                    fg_mask)
 
-        loss[0] *= self.hyp['box']  # box gain
+        loss[0] *= self.hyp['box'] # box gain
         loss[1] *= self.hyp['cls']  # cls gain
         loss[2] *= self.hyp['dfl']  # dfl gain
 
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
+
+
+class PoseLoss(ComputeLoss):
+
+    def __init__(self, model):  # model must be de-paralleled
+        super().__init__(model)
+        self.kpt_shape = model.model[-1].kpt_shape
+        self.bce_pose = nn.BCEWithLogitsLoss()
+        nkpt = self.kpt_shape  # number of keypoints
+        OKS_SIGMA = np.array(
+            [.26, .25, .25, .35, .35, .79, .79, .72, .72, .62, .62, 1.07, 1.07, .87, .87, .89, .89]) / 10.0
+
+        sigmas = torch.ones(nkpt, device=self.device) / nkpt
+        self.keypoint_loss = KeypointLoss(sigmas=sigmas)
+
+    def __call__(self, preds, batch):
+        loss = torch.zeros(5, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility
+        feats, pred_kpts = preds if isinstance(preds[0], list) else preds[1]
+        pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split((self.reg_max * 4, self.nc), 1)
+
+        # b, grids, ..
+        pred_scores = pred_scores.permute(0, 2, 1).contiguous()
+        pred_distri = pred_distri.permute(0, 2, 1).contiguous()
+        pred_kpts = pred_kpts.permute(0, 2, 1).contiguous()
+
+        dtype = pred_scores.dtype
+        imgsz = torch.tensor(feats[0].shape[2:], device=self.device, dtype=dtype) * self.stride[0]  # image size (h,w)
+        anchor_points, stride_tensor = make_anchors(feats, self.stride, 0.5)
+
+        # targets
+        batch_size = pred_scores.shape[0]
+        batch_idx = batch['batch_idx'].view(-1, 1)
+        targets = torch.cat((batch_idx, batch['cls'].view(-1, 1), batch['bboxes']), 1)
+        targets = self.preprocess(targets.to(self.device), batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
+        gt_labels, gt_bboxes = targets.split((1, 4), 2)  # cls, xyxy
+        mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0)
+
+        # pboxes
+        pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
+        pred_kpts = self.kpts_decode(anchor_points, pred_kpts.view(batch_size, -1, *self.kpt_shape))  # (b, h*w, 17, 3)
+
+        _, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
+            pred_scores.detach().sigmoid(), (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
+            anchor_points * stride_tensor, gt_labels, gt_bboxes, mask_gt)
+
+        target_scores_sum = max(target_scores.sum(), 1)
+
+        # cls loss
+        # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
+        loss[3] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
+
+        # bbox loss
+        if fg_mask.sum():
+            target_bboxes /= stride_tensor
+            loss[0], loss[4] = self.bbox_loss(pred_distri, pred_bboxes, anchor_points, target_bboxes, target_scores,
+                                              target_scores_sum, fg_mask)
+            keypoints = batch['keypoints'].to(self.device).float().clone()
+            keypoints[..., 0] *= imgsz[1]
+            keypoints[..., 1] *= imgsz[0]
+            for i in range(batch_size):
+                if fg_mask[i].sum():
+                    idx = target_gt_idx[i][fg_mask[i]]
+                    gt_kpt = keypoints[batch_idx.view(-1) == i][idx]  # (n, 51)
+                    gt_kpt[..., 0] /= stride_tensor[fg_mask[i]]
+                    gt_kpt[..., 1] /= stride_tensor[fg_mask[i]]
+                    area = self.xyxy2xywh(target_bboxes[i][fg_mask[i]])[:, 2:].prod(1, keepdim=True)
+                    pred_kpt = pred_kpts[i][fg_mask[i]]
+                    kpt_mask = gt_kpt[..., 2] != 0
+                    loss[1] += self.keypoint_loss(pred_kpt, gt_kpt, kpt_mask, area)  # pose loss
+                    # kpt_score loss
+                    if pred_kpt.shape[-1] == 3:
+                        loss[2] += self.bce_pose(pred_kpt[..., 2], kpt_mask.float())  # keypoint obj loss
+
+        loss[0] *= self.hyp['box']  # box gain
+        loss[1] *= self.hyp['pose'] / batch_size  # pose gain
+        loss[2] *= self.hyp['kobj'] / batch_size  # kobj gain
+        loss[3] *= self.hyp['cls']  # cls gain
+        loss[4] *= self.hyp['dfl']  # dfl gain
+
+        return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
+
+    def kpts_decode(self, anchor_points, pred_kpts):
+        y = pred_kpts.clone()
+        y[..., :2] *= 2.0
+        y[..., 0] += anchor_points[:, [0]] - 0.5
+        y[..., 1] += anchor_points[:, [1]] - 0.5
+        return y
+
+    def xyxy2xywh(x):
+        y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
+        y[..., 0] = (x[..., 0] + x[..., 2]) / 2  # x center
+        y[..., 1] = (x[..., 1] + x[..., 3]) / 2  # y center
+        y[..., 2] = x[..., 2] - x[..., 0]  # width
+        y[..., 3] = x[..., 3] - x[..., 1]  # height
+        return y
+
+class KeypointLoss(nn.Module):
+
+    def __init__(self, sigmas) -> None:
+        super().__init__()
+        self.sigmas = sigmas
+
+    def forward(self, pred_kpts, gt_kpts, kpt_mask, area):
+        d = (pred_kpts[..., 0] - gt_kpts[..., 0]) ** 2 + (pred_kpts[..., 1] - gt_kpts[..., 1]) ** 2
+        kpt_loss_factor = (torch.sum(kpt_mask != 0) + torch.sum(kpt_mask == 0)) / (torch.sum(kpt_mask != 0) + 1e-9)
+        # e = d / (2 * (area * self.sigmas) ** 2 + 1e-9)  # from formula
+        e = d / (2 * self.sigmas) ** 2 / (area + 1e-9) / 2  # from cocoeval
+        return kpt_loss_factor * ((1 - torch.exp(-e)) * kpt_mask).mean()

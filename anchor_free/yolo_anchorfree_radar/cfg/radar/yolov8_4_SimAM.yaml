@@ -1,4 +1,4 @@
-# XJTLU GMaster zR
+# XJTLU radar zR
 nc: 14  # number of classes
 depth_multiple: 0.33  # scales module repeats
 width_multiple: 0.5  # scales convolution channels

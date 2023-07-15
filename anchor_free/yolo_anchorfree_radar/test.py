@@ -14,9 +14,11 @@ from utils.datasets import create_dataloader
 from utils.general import coco80_to_coco91_class, check_dataset, check_file, check_img_size, \
     box_iou, non_max_suppression, scale_boxes, xyxy2xywh, xywh2xyxy, set_logging, increment_path, colorstr
 from utils.metrics import ap_per_class, ConfusionMatrix
-from utils.plots import plot_images, output_to_target, plot_val_study
+from utils.plots import plot_images, output_to_target
 from utils.torch_utils import select_device, time_synchronized
-    # TracedModel
+
+
+# TracedModel
 def test(data,
          weights=None,
          batch_size=32,
@@ -38,7 +40,8 @@ def test(data,
          compute_loss=None,
          half_precision=False,
          trace=False,
-         is_coco=False):
+         is_coco=False,
+         kpt_label = False):
     # Initialize/load model and set device
     training = model is not None
     if training:  # called by train.py
@@ -56,7 +59,7 @@ def test(data,
         model = attempt_load(weights, map_location=device)  # load FP32 model
         gs = max(int(model.stride.max()), 32)  # grid size (max stride)
         imgsz = check_img_size(imgsz, s=gs)  # check img_size
-        
+
         # if trace:
         #     model = TracedModel(model, device, opt.img_size)
 
@@ -310,7 +313,7 @@ if __name__ == '__main__':
     opt.save_json |= opt.data.endswith('coco.yaml')
     opt.data = check_file(opt.data)  # check file
     print(opt)
-    #check_requirements()
+    # check_requirements()
 
     if opt.task in ('train', 'val', 'test'):  # run normally
         test(opt.data,

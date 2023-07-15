@@ -1,5 +1,5 @@
 
-#include "yolov8_radar.h"
+#include "include/yolov8_radar.h"
 #include <NvInfer.h>
 #include <NvInferPlugin.h>
 #include <NvOnnxParser.h>
@@ -1837,11 +1837,11 @@ namespace yolo_radar_trt {
 
     using ThreadSafedAsyncInferImpl = ThreadSafedAsyncInfer //异步线程启动
             <
-            cv::Mat,                    // input
-            ObjectArray,                // output
-            tuple<string, int>,         // start param
-            AffineMatrix                // additional
-    >;
+                    cv::Mat,                    // input
+                    ObjectArray,                // output
+                    tuple<string, int>,         // start param
+                    AffineMatrix                // additional
+            >;
 
     class YoloTRTInferImpl : public Infer, public ThreadSafedAsyncInferImpl {
     public:
@@ -1923,7 +1923,7 @@ namespace yolo_radar_trt {
                 for (int ibatch = 0; ibatch < infer_batch_size; ++ibatch) {
 
                     auto &job = fetch_jobs[ibatch];
-                  float *pre = output_array_device.gpu<float>(ibatch);
+                    float *pre = output_array_device.gpu<float>(ibatch);
                     float *output_array_ptr = output_array_device.gpu<float>(ibatch);
                     transpose_kernel_invoker(output->gpu<float>(ibatch), output->size(2), num_classes + 4, pre,stream_);
                     auto affine_matrix = affin_matrix_device.gpu<float>(ibatch);
@@ -1947,6 +1947,18 @@ namespace yolo_radar_trt {
                         float prob = pbox[4];
                         int label = pbox[5];
                         int keepflag = pbox[6];
+                        if (Box.width * Box.height > 3000) {
+                            continue; //如果面积大于3000像素，跳过此bbox
+                        }
+                        if (Box.width / (float) Box.height < 0.33 || Box.width / (float) Box.height > 5) {
+                            continue; // 如果长宽比超过1:2，跳过此bbox
+                        }
+
+                        // 检查bbox的xy是否出现在了整个图像的0至1/4 height
+                        if (Box.y < input_height_ / 4) {
+                            continue; // 如果bbox的y坐标小于图像高度的1/4，跳过此bbox
+                        }
+
                         if (keepflag == 1) {
                             image_based_boxes.emplace_back(Box, label, prob);
                         }
@@ -2083,4 +2095,3 @@ namespace yolo_radar_trt {
     }
 
 };
-

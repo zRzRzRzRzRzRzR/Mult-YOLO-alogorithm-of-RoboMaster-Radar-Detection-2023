@@ -8,11 +8,12 @@ from utils.activations import Hardswish, SiLU
 from utils.general import set_logging, check_img_size
 from utils.torch_utils import select_device
 from utils.add_nms import RegisterNMS
+from models.yolo import V8Detect
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--weights', type=str, default='./yolov8s.pt', help='weights path')
-    parser.add_argument('--img-size', nargs='+', type=int, default=[1280, 1280], help='image size')  # height, width
+    parser.add_argument('--weights', type=str, default='../radar_detect/runs/train/radar_0715/weights/best.pt', help='weights path')
+    parser.add_argument('--img-size', nargs='+', type=int, default=[1280,1280], help='image size')  # height, width
     parser.add_argument('--batch-size', type=int, default=1, help='batch size')
     parser.add_argument('--dynamic', action='store_true', help='dynamic ONNX axes')
     parser.add_argument('--dynamic-batch', action='store_true', help='dynamic batch onnx for tensorrt and onnx-runtime')
@@ -33,6 +34,7 @@ if __name__ == '__main__':
     opt.img_size *= 2 if len(opt.img_size) == 1 else 1  # expand
     opt.dynamic = opt.dynamic and not opt.end2end
     opt.dynamic = False if opt.dynamic_batch else opt.dynamic
+
     print(opt)
     set_logging()
     t = time.time()
@@ -71,6 +73,11 @@ if __name__ == '__main__':
         print('\nStarting ONNX export with onnx %s...' % onnx.__version__)
         f = opt.weights.replace('.pt', '.onnx')  # filename
         model.eval()
+        for k, m in model.named_modules():
+            if isinstance(m, V8Detect):
+                m.inplace = False
+                m.dynamic = opt.dynamic
+                m.export = True
         output_names = ['classes', 'boxes'] if y is None else ['output']
         dynamic_axes = None
         if opt.dynamic:
@@ -101,7 +108,7 @@ if __name__ == '__main__':
                 model = End2End(model, opt.topk_all, opt.iou_thres, opt.conf_thres, opt.max_wh, device)
                 if opt.end2end and opt.max_wh is None:
                     output_names = ['num_dets', 'det_boxes', 'det_scores', 'det_classes']
-                    shapes = [opt.batch_size, 1, opt.batch_size, opt.topk_all, 4,
+                    shape = [opt.batch_size, 1, opt.batch_size, opt.topk_all, 4,
                               opt.batch_size, opt.topk_all, opt.batch_size, opt.topk_all]
                 else:
                     output_names = ['output']
@@ -117,7 +124,7 @@ if __name__ == '__main__':
         if opt.end2end and opt.max_wh is None:
             for i in onnx_model.graph.output:
                 for j in i.type.tensor_type.shape.dim:
-                    j.dim_param = str(shapes.pop(0))
+                    j.dim_param = str(shape.pop(0))
         if opt.simplify:
             try:
                 import onnxsim
