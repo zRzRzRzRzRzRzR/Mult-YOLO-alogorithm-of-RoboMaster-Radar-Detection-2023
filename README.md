@@ -56,15 +56,18 @@ C++_inference_TensorRT_radar: TensorRT推理代码（用于NVIDIA的GPU推理加
 ### 数据集格式和标注方法
 
 我们团队使用 [labelimg](https://github.com/heartexlabs/labelImg) 工具进行标注并保存为yolo格式。<br>
-本代码基于 [YoloV7](https://github.com/WongKinYiu/yolov7) 框架开发，理论上支持COCO类型数据集。
+本代码基于 [YOLOv7](https://github.com/WongKinYiu/yolov7) 框架开发，理论上支持COCO类型数据集。
 
 ### 数据集信息
 
 #### 数据集来源:<br>
 
-+ 西交利物浦大学RM2023赛季场地数据集数据集录制 2500张。
-+ 共计 2500张。
-  <br><br>
+##### 西交利物浦大学雷达小目标数据集
++ 西浦苏州工业园区校区无人机模拟雷达视角操场录制数据集 6100张
++ 西浦太仓校区雷达站录制数据集 800张
++ 西浦2023年北部赛区雷达内录 2260张
++ 西浦2023年全国赛雷达内 2060张
+__数据集开源地址: 链接: https://pan.baidu.com/s/1ayRI1MMw40ae4kuFZCXK_Q?pwd=XPGM 提取码: XPGM__
 
 #### 数据集分配:<br>
 
@@ -156,12 +159,8 @@ C++_inference_TensorRT_radar: TensorRT推理代码（用于NVIDIA的GPU推理加
 
 ## 总结
 
-+ 该项目针对RMUC2023赛季，如果你有好的建议，欢迎给我留言哦。
-+ 如果你觉得项目对你有帮助，请给个star吧~
-+ 如果你有更好的建议，欢迎提出PR，或者直接联系我哦，大家一起学习！
++ 该项目针对RMUC2023赛季，感谢大家，由于本人已经退役，本项目不在维护。
++ 如果你对该项目有兴趣，可以联系我们团队。
 
 ## 联系方式
-
-+ 作者微信: zR_ZYX
-+ 作者邮箱: Yuxuan.Zhang2104@student.xjtlu.edu.cn
 + 团队邮箱: TeamGMaster@xjtlu.edu.cn
